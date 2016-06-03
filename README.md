@@ -50,8 +50,6 @@ Now we are on this one that I will probably stick with, the library is solid and
 </ProfileSettings>
 ```
 
-#region 
-
 # Libraries
 1. [Selenium WebDriver](https://www.nuget.org/packages/Selenium.WebDriver/)
 2. [Selenium WebDriver Support Classes](https://www.nuget.org/packages/Selenium.Support/)
