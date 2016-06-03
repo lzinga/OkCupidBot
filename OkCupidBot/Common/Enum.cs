@@ -6,6 +6,18 @@ using System.Threading.Tasks;
 
 namespace OkCupidBot.Common
 {
+    public enum Operator
+    {
+        Equals,
+        GreaterThan,
+        GreaterThanOrEqualTo,
+        LessThan,
+        LessThanOrEqualTo,
+        Contains,
+    }
+
+
+
     [ProfileDetail]
     public enum Orientation
     {
@@ -15,8 +27,8 @@ namespace OkCupidBot.Common
         Bisexual,
         Asexual,
         Demisexual,
-        Heteroflexibile,
-        Homoflexibile,
+        Heteroflexible,
+        Homoflexible,
         Lesbian,
         Pansexual,
         Queer,
@@ -93,8 +105,13 @@ namespace OkCupidBot.Common
         NULL,
         Yes,
 
-        [RelationTo("Never Smokse")]
+        [RelationTo("Never Smokes")]
         No = 1,
+
+        [RelationTo("Smokes regularly")]
+        Regularly,
+
+        [RelationTo("Smokes sometimes")]
         Sometimes
     }
 
@@ -102,22 +119,27 @@ namespace OkCupidBot.Common
     public enum Drinking
     {
         NULL,
-        Often,
+
+        [RelationTo("Drinks Socially")]
         Socially,
 
         [RelationTo("Not At All")]
-        NotAtAll
+        Never
     }
 
     [ProfileDetail]
     public enum Drugs
     {
         NULL,
+
+        [RelationTo("Doesn’t do drugs")]
         Never,
 
         [RelationTo("Sometimes Does Drugs")]
         Sometimes = 2,
-        Often
+
+        [RelationTo("Does Drugs")]
+        Yes
     }
 
     [ProfileDetail]

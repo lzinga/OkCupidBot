@@ -1,6 +1,7 @@
 ﻿using OkCupidBot.Common;
 using OpenQA.Selenium;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -33,6 +34,13 @@ namespace OkCupidBot.Services
             this.Services.WebService.WaitForPageReady();
         }
 
+        public void OpenMessageInput()
+        {
+            IWebElement messageButton = this.Services.WebService.Browser.FindElementByPartialClass("chat");
+            messageButton.Click();
+            this.Services.WebService.WaitForPageReady();
+        }
+
         public List<Profile> ScanMatches()
         {
             List<Profile> profiles = new List<Profile>();
@@ -40,28 +48,35 @@ namespace OkCupidBot.Services
             this.Services.WebService.NavigateTo(Urls.OkCupidMatches);
             this.Services.WebService.ScrollTo(By.ClassName("blank_state"));
             this.Services.LogService.WriteHeader("Scanning Available Matches");
-            Dictionary<string, Uri> baseMatches = new Dictionary<string, Uri>();
+
             ReadOnlyCollection<IWebElement> matches = this.Services.WebService.Browser.FindElementsByClassName("matchcard-user");
-            for(int i = 0; i <= matches.Count; i++)
+
+            // After it changes pages the matches are no longer found, so lets save them in a temp dictionary.
+            List<Tuple<string, string>> cachedMatches = new List<Tuple<string, string>>();
+            foreach(IWebElement element in matches)
             {
-                string username = matches[i].FindElement(By.ClassName("name")).Text;
-                Uri uri = new Uri(matches[i].FindElement(By.ClassName("name")).GetAttribute("href"));
+                cachedMatches.Add(new Tuple<string, string>(element.FindElement(By.ClassName("name")).Text, element.FindElement(By.ClassName("name")).GetAttribute("href")));
+            }
+
+
+            for(int i = 0; i <= cachedMatches.Count; i++)
+            {
+                string username = cachedMatches[i].Item1;
+                Uri uri = new Uri(cachedMatches[i].Item2);
 
                 // TODO add database check if already visited profile.
 
-                Profile newProf = new Profile() { Username = username, ProfilePage = uri };
-                this.GetProfile(newProf);
-
                 this.Services.LogService.WriteLine("{0}. Parsing \"{1}\" ...", i + 1, username);
-                baseMatches.Add(username, uri);
+                profiles.Add(this.GetProfile(username, uri));
             }
 
             this.Services.LogService.WriteLine("Found {0} matches.", profiles.Count);
             return profiles;
         }
 
-        private void GetProfile(Profile prof)
+        private Profile GetProfile(string username, Uri profilePage)
         {
+            Profile prof = new Profile(username, profilePage);
             this.Services.WebService.NavigateTo(prof.ProfilePage);
 
             #region Main Region
@@ -104,44 +119,63 @@ namespace OkCupidBot.Services
             // Turn the details list into their respective enums.
             this.ParseDetails(ref prof, details);
 
+
+            prof.SendMessage();
+            return prof;
         }
-        
+
         private void ParseDetails(ref Profile prof, List<string> details)
         {
             // Get all types in the entire assembly with attribute of ProfileDetailAttribute
-            Type[] types = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(i => i.FullName.Contains("OkCupidBot"))
-                .SelectMany(i => i.GetTypes().Where(x => Attribute.IsDefined(x, typeof(ProfileDetailAttribute))).Select(y => y)).ToArray();
-
-            foreach(Type profileDetail in types)
+            foreach(string detail in details)
             {
-                // TODO move below logic into here.
-            }
-
-
-
-            foreach(PropertyInfo property in prof.GetType().GetProperties())
-            {
-                foreach(string detail in details)
+                #region Non Enum
+                Match heightMatch = Regex.Match(detail, @"(\d’) (\d”)");
+                if (heightMatch.Success)
                 {
-                    // This will not work for a list property of enum.
-                    if (property.PropertyType.IsEnum)
+                    Height height = new Height();
+                    int feet;
+                    if (int.TryParse(Regex.Match(heightMatch.Groups[1].Value, @"\d+").Value, out feet))
                     {
-                        try
-                        {
-                            property.SetValue(prof, Enum.Parse(property.PropertyType, detail.Trim().Replace(" ", ""), true));
-                        }
-                        catch (Exception ex)
-                        {
-                            // Failed to get enum by regular name. Try by attribute.
-                            RelationToAttribute attribute = property.GetCustomAttribute<RelationToAttribute>();
-                            if (attribute == null) continue;
+                        height.Feet = feet;
+                    }
 
-                            property.SetValue(prof, Enum.Parse(property.PropertyType, attribute.Name));
+                    int inches;
+                    if (int.TryParse(Regex.Match(heightMatch.Groups[2].Value, @"\d+").Value, out inches))
+                    {
+                        height.Inches = inches;
+                    }
+                    prof.Height = height;
+                }
+                #endregion
+
+                #region Enums
+                object propertyValue = detail.ToEnum();
+                if (propertyValue == null) continue;
+
+                foreach(PropertyInfo property in prof.GetType().GetProperties())
+                {
+
+                    if (property.PropertyType == propertyValue.GetType())
+                    {
+                        property.SetValue(prof, propertyValue);
+                        break;
+                    }
+                    else if (property.PropertyType.GenericTypeArguments.Length > 0 && property.PropertyType.GenericTypeArguments[0] == propertyValue.GetType())
+                    {
+                        var list = (IList)property.GetValue(prof);
+                        if (list == null) list = (IList)Activator.CreateInstance(property.PropertyType);
+
+                        if (!list.Contains(propertyValue))
+                        {
+                            list.Add(propertyValue);
                         }
 
+                        property.SetValue(prof, list);
+                        break;
                     }
                 }
+                #endregion
             }
         }
 

@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Messages>
+  <Condition Key="IsOnline" Value="true">
+    <Message Value="Hello {username} what are you doing!" />
+  </Condition>
+</Messages>

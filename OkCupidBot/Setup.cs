@@ -51,7 +51,14 @@ namespace OkCupidBot
             ServiceManager.Services.OkCupidService.Login();
 
             // Scan profiles.
-            ServiceManager.Services.OkCupidService.ScanMatches();
+            List<Profile> matches =  ServiceManager.Services.OkCupidService.ScanMatches();
+
+            // Run Matches
+            foreach(Profile match in matches)
+            {
+                match.SendMessage();
+            }
+
             return 0;
         }
 

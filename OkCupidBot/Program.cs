@@ -1,4 +1,6 @@
-﻿using OkCupidBot.Services;
+﻿using OkCupidBot.Common;
+using OkCupidBot.Models;
+using OkCupidBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace OkCupidBot
             ServiceManager.Services.LogService.WriteHeader("Cleaning Services");
             ServiceManager.Services.Dispose();
 
-            Environment.Exit(exitCode);
+            Environment.Exit(0);
         }
     }
 }

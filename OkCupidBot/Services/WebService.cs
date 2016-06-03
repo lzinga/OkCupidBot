@@ -33,6 +33,11 @@ namespace OkCupidBot.Services
             javaScriptExecutor.ExecuteScript("document.location.reload()");
         }
 
+        public bool AlreadyOnPage(Uri uri)
+        {
+            return _driver.Url == uri.ToString();
+        }
+
         public void WaitForPageReady(TimeSpan? timeout = null)
         {
             var javaScriptExecutor = _driver as IJavaScriptExecutor;
