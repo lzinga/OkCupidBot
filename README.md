@@ -1,13 +1,13 @@
 # OkCupidBot
 There actually have been 2 other versions of this kind of program, and this is the cleanest and most advanced one which I decided to upload and document.
 
-###### First Version
+### First Version
 The first one was made using a different library. It would crash all the time and would fail to load the browser because one already existed and you would have to end process a hidden internet explorer. All in all it wasn't the best library and caused all kinds of issues.
 
-###### Second Version
+### Second Version
 Second one was using the same library as this but it was a complete mess of code and didn't have proper encapsulation and had things all in one big method for the most part. So it was just this uploaded version, but a huge mess.
 
-###### Third Version
+### Third Version ( this repo )
 Now we are on this one that I will probably stick with, the library is solid and allows for a lot of customization and allows me to use any type of browser (however it is hardcoded right now to use firefox).
 
 # Arguments
@@ -27,7 +27,6 @@ Now we are on this one that I will probably stick with, the library is solid and
 ```
 
 # Profile Settings Xml
-
 ```xml
 <?xml version="1.0" encoding="utf-16"?>
 <ProfileSettings>
@@ -50,6 +49,8 @@ Now we are on this one that I will probably stick with, the library is solid and
   
 </ProfileSettings>
 ```
+
+#region 
 
 # Libraries
 1. [Selenium WebDriver](https://www.nuget.org/packages/Selenium.WebDriver/)
