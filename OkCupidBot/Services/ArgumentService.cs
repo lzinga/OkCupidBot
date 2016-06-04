@@ -17,6 +17,8 @@ namespace OkCupidBot.Services
 
         public string ProfileSettingsFileName { get; set; }
 
+        public string MessageSettingsFileName { get; set; }
+
         [Secure]
         public string Password { get; set; }
     }

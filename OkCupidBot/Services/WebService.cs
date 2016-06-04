@@ -23,8 +23,24 @@ namespace OkCupidBot.Services
 
         public void Initialize()
         {
-            ServiceManager.Services.LogService.WriteHeader("Initalizing WebService");
+            this.Services.LogService.WriteHeader("Initalizing WebService");
             _driver = new FirefoxDriver();
+        }
+
+        public void WaitForTime(int seconds)
+        {
+            DateTime endTime = DateTime.Now.AddSeconds(seconds);
+            this.Services.LogService.WriteLine("Pausing for {0} seconds...", ConsoleColor.Yellow, seconds);
+            while (DateTime.Now <= endTime)
+            {
+
+            }
+        }
+
+        public void WaitForRandomTime(int min, int max)
+        {
+            Random rand = new Random();
+            this.WaitForTime(rand.Next(min, max));
         }
 
         public void RefreshPage()

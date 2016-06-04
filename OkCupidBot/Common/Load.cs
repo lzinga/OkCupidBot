@@ -19,5 +19,13 @@ namespace OkCupidBot.Common
 
             return System.IO.File.ReadAllText(fullpath).Deserialize<ProfileSettings>();
         }
+
+        public static MessageSettings MessageSettings()
+        {
+            string fileName = ServiceManager.Services.ArgumentService.Arguments.MessageSettingsFileName;
+            string fullpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Config", fileName);
+
+            return System.IO.File.ReadAllText(fullpath).Deserialize<MessageSettings>();
+        }
     }
 }

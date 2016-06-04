@@ -14,6 +14,7 @@ namespace OkCupidBot.Common
         LessThan,
         LessThanOrEqualTo,
         Contains,
+        DoesNotContain,
     }
 
 

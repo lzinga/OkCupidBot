@@ -40,6 +40,14 @@ namespace OkCupidBot.Services
             }
         }
 
+        public MessageService MessageService
+        {
+            get
+            {
+                return this.GetService<MessageService>();
+            }
+        }
+
         public DatabaseService DatabaseService
         {
             get

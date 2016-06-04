@@ -53,7 +53,7 @@ namespace OkCupidBot.Services
 
             // After it changes pages the matches are no longer found, so lets save them in a temp dictionary.
             List<Tuple<string, string>> cachedMatches = new List<Tuple<string, string>>();
-            foreach(IWebElement element in matches.Take(5))
+            foreach(IWebElement element in matches)
             {
                 cachedMatches.Add(new Tuple<string, string>(element.FindElement(By.ClassName("name")).Text, element.FindElement(By.ClassName("name")).GetAttribute("href")));
             }
@@ -73,10 +73,12 @@ namespace OkCupidBot.Services
                 Profile prof = this.GetProfile(username, uri);
                 if (sendMessage)
                 {
+                    ServiceManager.Services.WebService.WaitForRandomTime(15, 20);
                     prof.SendMessage();
                 }
 
                 profiles.Add(prof);
+                ServiceManager.Services.WebService.WaitForRandomTime(5, 10);
             }
 
             this.Services.LogService.WriteLine("Found {0} matches.", profiles.Count);
@@ -86,7 +88,7 @@ namespace OkCupidBot.Services
         private Profile GetProfile(string username, Uri profilePage)
         {
             Profile prof = new Profile(username, profilePage);
-            //Profile prof = new Profile("Lanabooinabox", new Uri("https://www.okcupid.com/profile/Lanabooinabox?cf=regular"));
+            //Profile prof = new Profile("csierraasaurus", new Uri("https://www.okcupid.com/profile/csierraasaurus?cf=regular"));
             this.Services.LogService.WriteHeader("Parsing \"{0}\" ...", username);
             this.Services.WebService.NavigateTo(prof.ProfilePage);
 
@@ -188,6 +190,14 @@ namespace OkCupidBot.Services
                 }
                 #endregion
             }
+        }
+
+        public void SendMessage(string message)
+        {
+            IWebElement messageBox = ServiceManager.Services.WebService.Browser.FindElementsByXPath("//textarea[@placeholder='Compose your message']")[1];
+            messageBox.SendKeys(message);
+            IWebElement sendButton = ServiceManager.Services.WebService.Browser.FindElementByXPath("//button[@type='submit']");
+            sendButton.Click();
         }
 
         public void Dispose()

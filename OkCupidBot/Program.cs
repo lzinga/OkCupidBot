@@ -18,6 +18,7 @@ namespace OkCupidBot
             ServiceManager.Services.Add(new LogService());
             ServiceManager.Services.Add(new DatabaseService());
             ServiceManager.Services.Add(new WebService());
+            ServiceManager.Services.Add(new MessageService());
 
             Setup setup = new Setup();
             int exitCode = setup.Execute();

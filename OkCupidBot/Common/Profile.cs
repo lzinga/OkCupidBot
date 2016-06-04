@@ -7,6 +7,7 @@ using OkCupidBot.Services;
 using OkCupidBot.Models;
 using System.Reflection;
 using System.Collections;
+using OpenQA.Selenium;
 
 namespace OkCupidBot.Common
 {
@@ -55,6 +56,10 @@ namespace OkCupidBot.Common
                 ServiceManager.Services.WebService.NavigateTo(this.ProfilePage);
                 ServiceManager.Services.OkCupidService.OpenMessageInput();
             }
+            else
+            {
+                ServiceManager.Services.OkCupidService.OpenMessageInput();
+            }
 
             result = ServiceManager.Services.WebService.Browser.FindElementsByClassName("yours").Count > 0;
 
@@ -69,11 +74,11 @@ namespace OkCupidBot.Common
         public bool ShouldSendMessage()
         {
             ProfileSettings settings = Load.ProfileSettings();
-            List<bool> valid = new List<bool>();
+            Dictionary<string, bool> requirementPassed = new Dictionary<string, bool>();
+
             // Loop over all the profile settings.
             foreach (ProfileSetting setting in settings.Settings)
             {
-                valid.Clear();
                 bool conditionsMet = true;
 
                 // Check the conditions.
@@ -97,100 +102,68 @@ namespace OkCupidBot.Common
                 // If all the conditions were not met continue to next setting.
                 if (!conditionsMet) continue;
 
-                
+
                 // Now check all profile values.
+                
                 foreach(Requirement value in setting.Requirements)
                 {
+                    if(requirementPassed.ContainsKey(value.Key) && requirementPassed[value.Key])
+                    {
+                        continue;
+                    }
+
                     PropertyInfo property = this.GetType().GetProperty(value.Key);
                     object propValue = property.GetValue(this);
+
+                    if (!requirementPassed.ContainsKey(value.Key))
+                    {
+                        requirementPassed.Add(value.Key, false);
+                    }
 
                     switch (value.Operator)
                     {
                         case Operator.Equals:
                             if (propValue.ToString() == value.Value)
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" equals \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
-                            else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" does not equal \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
                             break;
                         case Operator.GreaterThan:
                             if ((int)propValue > value.Value.TryParseToInt())
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" is greater than \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
-                            else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" is not greater \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
                             break;
                         case Operator.GreaterThanOrEqualTo:
                             if ((int)propValue >= value.Value.TryParseToInt())
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" greater than or equal to \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
-                            else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" is not greater or equal to \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
                             break;
                         case Operator.LessThan:
                             if ((int)propValue < value.Value.TryParseToInt())
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" less than \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
-                            else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" is not less than \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
                             break;
                         case Operator.LessThanOrEqualTo:
                             if ((int)propValue <= value.Value.TryParseToInt())
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" less than or equal to \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
+                                requirementPassed[value.Key] = true;
                             else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" is not less than or equal to \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
                             break;
                         case Operator.Contains:
                             if (((IList)propValue).SpecialContains(value.Value))
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" contains \"{2}\".", ConsoleColor.Green, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(true);
-                            }
-                            else
-                            {
-                                ServiceManager.Services.LogService.WriteLine("{0}: \"{1}\" does not contain \"{2}\".", ConsoleColor.Red, value.Key, propValue.ToString(), value.Value);
-                                valid.Add(false);
-                            }
+                                requirementPassed[value.Key] = true;
+                            break;
+                        case Operator.DoesNotContain:
+                            if (!((IList)propValue).SpecialContains(value.Value))
+                                requirementPassed[value.Key] = true;
                             break;
                         default:
                             throw new InvalidOperationException("Operator is invalid.");
                     }
                 }
-
-                // Is there any with false?
-                if (!valid.Any(i => !i))
-                {
-                    break;
-                }
             }
 
-            return !valid.Any(i => !i);
+            foreach(KeyValuePair<string, bool> pair in requirementPassed.Where(i => !i.Value))
+            {
+                ServiceManager.Services.LogService.WriteLine("Failed Validation Because: \"{0}\"", ConsoleColor.Red, pair.Key);
+            }
+
+            return !requirementPassed.Any(i => !i.Value);
         }
 
         public void SendMessage()
@@ -203,22 +176,31 @@ namespace OkCupidBot.Common
                 ServiceManager.Services.LogService.WriteLine("Already sent message.");
                 return;
             }
-                
 
             // Should we send a message to the user?
             if (!this.ShouldSendMessage())
             {
-                ServiceManager.Services.LogService.WriteLine("Invalid Requirements...");
+                ServiceManager.Services.LogService.WriteLine("Invalid Requirements...", ConsoleColor.DarkRed);
+                ServiceManager.Services.DatabaseService.AddUser(this, null);
                 return;
             }
             else
             {
-                ServiceManager.Services.LogService.WriteLine("Valid Requirements...");
+                ServiceManager.Services.LogService.WriteLine("Valid Requirements", ConsoleColor.DarkGreen);
             }
 
+            string message = ServiceManager.Services.MessageService.GetMessage(this);
 
+            if (string.IsNullOrEmpty(message))
+            {
+                ServiceManager.Services.LogService.WriteLine("The returned message was empty, something bad happened.", ConsoleColor.Yellow);
+                return;
+            }
 
+            ServiceManager.Services.LogService.WriteLine("Sending Message: {0}", ConsoleColor.White, message);
+            ServiceManager.Services.OkCupidService.SendMessage(message);
 
+            ServiceManager.Services.DatabaseService.AddUser(this, message);
         }
 
 

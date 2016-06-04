@@ -84,11 +84,13 @@
     <Compile Include="Common\RelationToAttribute.cs" />
     <Compile Include="Common\SecureAttribute.cs" />
     <Compile Include="Common\Urls.cs" />
+    <Compile Include="Models\MessageSettings.cs" />
     <Compile Include="Models\ProfileSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ArgumentService.cs" />
     <Compile Include="Services\BaseService.cs" />
+    <Compile Include="Services\MessageService.cs" />
     <Compile Include="Services\IService.cs" />
     <Compile Include="Services\DatabaseService.cs" />
     <Compile Include="Services\LogService.cs" />
@@ -106,7 +108,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Config\Messages.xml">
+    <Content Include="Config\DefaultMessages.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

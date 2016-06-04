@@ -16,11 +16,8 @@ namespace OkCupidBot.Services
 	[Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	[Username] NVARCHAR(128)  NOT NULL,
 	[Url] NVARCHAR(128)  NOT NULL,
-	[SentMessage] BIT NOT NULL,
 	[Message] TEXT  NULL,
 	[Date] DATETIME  NOT NULL)";
-
-
 
         public DatabaseService()
         {
@@ -37,6 +34,21 @@ namespace OkCupidBot.Services
                 com.Parameters.AddWithValue("@Username", username);
                 int results = Convert.ToInt32(com.ExecuteScalar());
                 return results > 1;
+            }
+        }
+
+        public void AddUser(Profile prof, string message)
+        {
+            using (SQLiteConnection con = new SQLiteConnection(string.Format("data source={0}", DatabaseFileName)))
+            using (SQLiteCommand com = new SQLiteCommand(con))
+            {
+                con.Open();
+                com.CommandText = "INSERT INTO History (Username, Url, Message, Date) VALUES(@Username, @Url, @Message, @Date)";
+                com.Parameters.AddWithValue("@Username", prof.Username);
+                com.Parameters.AddWithValue("@Url", prof.ProfilePage.ToString());
+                com.Parameters.AddWithValue("@Message", message);
+                com.Parameters.AddWithValue("@Date", DateTime.Now);
+                int result = com.ExecuteNonQuery();
             }
         }
 

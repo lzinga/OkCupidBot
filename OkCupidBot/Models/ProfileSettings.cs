@@ -45,7 +45,7 @@ namespace OkCupidBot.Models
         public string Value { get; set; }
     }
 
-    [XmlType(TypeName = "Condition")]
+    [XmlType("Condition")]
     public class ProfileCondition
     {
         [XmlAttribute]
