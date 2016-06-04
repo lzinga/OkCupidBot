@@ -50,6 +50,40 @@ Now we are on this one that I will probably stick with, the library is solid and
 </ProfileSettings>
 ```
 
+# Messages Xml
+Most advanced conditions should be at the top and smallest conditions should be at the bottom. It will fall through to each MessageGroup below it and check all conditions. So it will add all messages as long as the conditions are met. Adding a MessageGroup with no conditions will make all messages in it be available.
+
+Inside the messages you can access variables of the users Profile class (will be updating a wiki probably of all available properties. Eventually you will also be able to access Weather and so on. So if you wanted to access the users height you would do {Profile.Height.Feet} which would insert the value.
+
+For the condition key if you wanted to make sure they were above 5 feet you could do the following:
+```xml
+<Condition Key="Profile.Height.Feet" Operator="GreaterThanOrEqualTo" Value="5" />
+```
+
+```xml
+<?xml version="1.0" encoding="utf-16"?>
+<MessageSettings>
+
+  <MessageGroup>
+    <Conditions>
+      <Condition Key="Profile.IsOnline" Operator="Equals" Value="true" />
+    </Conditions>
+    <Message Value="Hello {Profile.Username}, how are you doing tonight." />
+  </MessageGroup>
+
+  <MessageGroup>
+    <Conditions />
+    <Message Value="Quick! the most recent movie you have watched and what you thought of it!" />
+    <Message Value="If you had to survive on a desert island for 5 years and you could only bring one thing, what would you bring?: 1. Machete 2. A book (what book?) 3. A volleyball 4. Hatchet" />
+    <Message Value="Hey! What are you doing right this second! Other than reading my message!" />
+    <Message Value="I have been running out of movies to watch on Netflix. Would you have any good suggestions? How about your favorite?" />
+  </MessageGroup>
+
+</MessageSettings>
+```
+
+
+
 # Libraries
 1. [Selenium WebDriver](https://www.nuget.org/packages/Selenium.WebDriver/)
 2. [Selenium WebDriver Support Classes](https://www.nuget.org/packages/Selenium.Support/)
