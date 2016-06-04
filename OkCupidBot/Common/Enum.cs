@@ -88,7 +88,7 @@ namespace OkCupidBot.Common
         Fit,
         Jacked,
 
-        [RelationTo("A Little Extra")]
+        [RelationTo("A little extra build")]
         LittleExtra,
         Curvy,
 

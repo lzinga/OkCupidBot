@@ -40,6 +40,14 @@ namespace OkCupidBot.Services
             }
         }
 
+        public DatabaseService DatabaseService
+        {
+            get
+            {
+                return this.GetService<DatabaseService>();
+            }
+        }
+
         public OkCupidService OkCupidService
         {
             get

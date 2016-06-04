@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,19 @@ namespace OkCupidBot.Common
                 xmlSerializer.Serialize(textWriter, obj);
                 return textWriter.ToString();
             }
+        }
+
+        public static bool SpecialContains(this IList list, string value)
+        {
+            foreach(var item in list)
+            {
+                if(item.ToString() == value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -68,7 +82,7 @@ namespace OkCupidBot.Common
 
         public static string RemoveSpecialCharacters(this string str)
         {
-            return Regex.Replace(str, "[^a-zA-Z0-9 ]", " ");
+            return Regex.Replace(str, "[^a-zA-Z0-9 ]", "").Trim();
         }
 
         public static object ToEnum(this string str)

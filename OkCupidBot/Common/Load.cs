@@ -17,7 +17,7 @@ namespace OkCupidBot.Common
             string fileName = ServiceManager.Services.ArgumentService.Arguments.ProfileSettingsFileName;
             string fullpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Config", fileName);
 
-            return File.ReadAllText(fullpath).Deserialize<ProfileSettings>();
+            return System.IO.File.ReadAllText(fullpath).Deserialize<ProfileSettings>();
         }
     }
 }

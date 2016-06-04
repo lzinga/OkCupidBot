@@ -41,7 +41,7 @@ namespace OkCupidBot.Services
             this.Services.WebService.WaitForPageReady();
         }
 
-        public List<Profile> ScanMatches()
+        public List<Profile> ScanMatches(bool sendMessage = false)
         {
             List<Profile> profiles = new List<Profile>();
 
@@ -53,21 +53,30 @@ namespace OkCupidBot.Services
 
             // After it changes pages the matches are no longer found, so lets save them in a temp dictionary.
             List<Tuple<string, string>> cachedMatches = new List<Tuple<string, string>>();
-            foreach(IWebElement element in matches)
+            foreach(IWebElement element in matches.Take(5))
             {
                 cachedMatches.Add(new Tuple<string, string>(element.FindElement(By.ClassName("name")).Text, element.FindElement(By.ClassName("name")).GetAttribute("href")));
             }
 
-
-            for(int i = 0; i <= cachedMatches.Count; i++)
+            for (int i = 0; i < cachedMatches.Count; i++)
             {
                 string username = cachedMatches[i].Item1;
                 Uri uri = new Uri(cachedMatches[i].Item2);
 
-                // TODO add database check if already visited profile.
+                // If user has already been viewed skip to next one.
+                if (ServiceManager.Services.DatabaseService.UserExists(username))
+                {
+                    this.Services.LogService.WriteLine("{0}. Skipping \"{1}\" ...", i + 1, username);
+                    continue;
+                }
 
-                this.Services.LogService.WriteLine("{0}. Parsing \"{1}\" ...", i + 1, username);
-                profiles.Add(this.GetProfile(username, uri));
+                Profile prof = this.GetProfile(username, uri);
+                if (sendMessage)
+                {
+                    prof.SendMessage();
+                }
+
+                profiles.Add(prof);
             }
 
             this.Services.LogService.WriteLine("Found {0} matches.", profiles.Count);
@@ -77,6 +86,8 @@ namespace OkCupidBot.Services
         private Profile GetProfile(string username, Uri profilePage)
         {
             Profile prof = new Profile(username, profilePage);
+            //Profile prof = new Profile("Lanabooinabox", new Uri("https://www.okcupid.com/profile/Lanabooinabox?cf=regular"));
+            this.Services.LogService.WriteHeader("Parsing \"{0}\" ...", username);
             this.Services.WebService.NavigateTo(prof.ProfilePage);
 
             #region Main Region
@@ -85,9 +96,9 @@ namespace OkCupidBot.Services
             // Self Summary
             IWebElement selfSummary = main.FindElement(By.XPath("div[1]/div[2]"));
             prof.SelfSummary = selfSummary.Text;
-
-
             #endregion
+
+            this.Services.WebService.WaitForPageReady();
 
             #region Age / Match / IsOnline
             IWebElement amo = this.Services.WebService.Browser.FindElementByPartialClass("basics-asl");
@@ -95,6 +106,8 @@ namespace OkCupidBot.Services
             prof.MatchPercent = Regex.Match(amo.FindElementByPartialClass("asl-match").FindElement(By.TagName("a")).Text, @"\d+").Value.TryParseToInt();
             prof.IsOnline = amo.ElementExists(By.XPath("//*[@data-tooltip='Online now']"));
             #endregion
+
+            this.Services.WebService.WaitForPageReady();
 
             #region SideBar
             IWebElement sidebar = this.Services.WebService.Browser.FindElementByPartialClass("content-sidebar");
@@ -119,8 +132,6 @@ namespace OkCupidBot.Services
             // Turn the details list into their respective enums.
             this.ParseDetails(ref prof, details);
 
-
-            prof.SendMessage();
             return prof;
         }
 

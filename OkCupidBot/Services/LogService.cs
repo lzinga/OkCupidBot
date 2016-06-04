@@ -28,7 +28,7 @@ namespace OkCupidBot.Services
             if (ServiceManager.Services.ArgumentService.Arguments.Debug)
             {
                 WriteLine("Press any key to continue...");
-                Console.ReadLine();
+                Console.ReadKey();
             }
 
             WriteLine("======================================================================");

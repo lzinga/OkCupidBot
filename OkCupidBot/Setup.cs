@@ -13,10 +13,6 @@ namespace OkCupidBot
     {
         public Setup()
         {
-            ServiceManager.Services.Add(new ArgumentService());
-            ServiceManager.Services.Add(new LogService());
-            ServiceManager.Services.Add(new WebService());
-
             if (ServiceManager.Services.ArgumentService.Arguments.Debug)
             {
                 ServiceManager.Services.LogService.WriteLine("Debug mode is enabled, after every action it will require input.");
@@ -51,13 +47,7 @@ namespace OkCupidBot
             ServiceManager.Services.OkCupidService.Login();
 
             // Scan profiles.
-            List<Profile> matches =  ServiceManager.Services.OkCupidService.ScanMatches();
-
-            // Run Matches
-            foreach(Profile match in matches)
-            {
-                match.SendMessage();
-            }
+            List<Profile> matches =  ServiceManager.Services.OkCupidService.ScanMatches(true);
 
             return 0;
         }
