@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.IE;
 using OpenQA.Selenium.Support.UI;
 
 namespace OkCupidBot.Services
 {
     public class WebService : BaseService
     {
-        private FirefoxDriver _driver;
+        private ChromeDriver _driver;
 
-        public FirefoxDriver Browser
+        public ChromeDriver Browser
         {
             get
             {
@@ -24,17 +26,37 @@ namespace OkCupidBot.Services
         public void Initialize()
         {
             this.Services.LogService.WriteHeader("Initalizing WebService");
-            _driver = new FirefoxDriver();
+            _driver = new ChromeDriver(@"C:\Program Files (x86)\Microsoft Web Driver\");
         }
 
         public void WaitForTime(int seconds)
         {
             DateTime endTime = DateTime.Now.AddSeconds(seconds);
-            this.Services.LogService.WriteLine("Pausing for {0} seconds...", ConsoleColor.Yellow, seconds);
+            this.Services.LogService.WriteLine("Pausing for {0} second{1}...", ConsoleColor.Yellow, seconds, seconds > 1 ? "s" : "");
+            int secondsPassed = 0;
+            int curSecond = DateTime.Now.Second;
             while (DateTime.Now <= endTime)
             {
+                if(curSecond != DateTime.Now.Second)
+                {
+                    secondsPassed++;
+                    curSecond = DateTime.Now.Second;
+                    this.Services.LogService.ClearCurrentConsoleLine();
 
+                    int newSeconds = seconds - secondsPassed;
+                    this.Services.LogService.WriteLine("Pausing for {0} more second{1}...", ConsoleColor.Yellow, newSeconds, newSeconds > 1 ? "s" : "");
+
+                    if(newSeconds <= 5 && this.Services.ArgumentService.Arguments.DiscordMessage && this.Services.DiscordService.ReceiveMessages)
+                    {
+                        this.Services.DiscordService.SendMessage($"Pausing for {newSeconds} more second{(newSeconds > 1 ? "s" : "")}...");
+                    }
+
+                }
             }
+
+            // Since it replaced how long it was originally paused for, place it back into the console.
+            this.Services.LogService.ClearCurrentConsoleLine();
+            this.Services.LogService.WriteLine("Paused for {0} second{1} from {2} to {3}", ConsoleColor.Yellow, seconds, seconds > 1 ? "s" : "", DateTime.Now.AddSeconds(-seconds).ToLongTimeString(), DateTime.Now.ToLongTimeString());
         }
 
         public void WaitForRandomTime(int min, int max)

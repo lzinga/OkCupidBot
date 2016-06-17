@@ -15,12 +15,20 @@ namespace OkCupidBot.Services
 
         public string Username { get; set; }
 
+        [Secure]
+        public string Password { get; set; }
+
+        public string DiscordUsername { get; set; }
+
+        public bool DiscordMessage { get; set; }
+
+        [Secure]
+        public string DiscordPassword { get; set; }
+
         public string ProfileSettingsFileName { get; set; }
 
         public string MessageSettingsFileName { get; set; }
 
-        [Secure]
-        public string Password { get; set; }
     }
 
     public class ArgumentService : BaseService

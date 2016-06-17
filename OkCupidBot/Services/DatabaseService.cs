@@ -33,7 +33,7 @@ namespace OkCupidBot.Services
                 com.CommandText = "SELECT COUNT(Id) FROM History WHERE Username = @Username";
                 com.Parameters.AddWithValue("@Username", username);
                 int results = Convert.ToInt32(com.ExecuteScalar());
-                return results > 1;
+                return results >= 1;
             }
         }
 

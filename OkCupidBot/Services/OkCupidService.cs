@@ -37,6 +37,7 @@ namespace OkCupidBot.Services
         public void OpenMessageInput()
         {
             IWebElement messageButton = this.Services.WebService.Browser.FindElementByPartialClass("chat");
+            ServiceManager.Services.WebService.WaitForPageReady(new TimeSpan(0, 1, 0));
             messageButton.Click();
             this.Services.WebService.WaitForPageReady();
         }
@@ -85,7 +86,7 @@ namespace OkCupidBot.Services
             return profiles;
         }
 
-        private Profile GetProfile(string username, Uri profilePage)
+        public Profile GetProfile(string username, Uri profilePage)
         {
             Profile prof = new Profile(username, profilePage);
             //Profile prof = new Profile("csierraasaurus", new Uri("https://www.okcupid.com/profile/csierraasaurus?cf=regular"));
@@ -94,10 +95,57 @@ namespace OkCupidBot.Services
 
             #region Main Region
             IWebElement main = this.Services.WebService.Browser.FindElementByClassName("profilesection");
+            int profileEssayCount = main.FindElements(By.XPath("div")).Count - 1;
 
-            // Self Summary
-            IWebElement selfSummary = main.FindElement(By.XPath("div[1]/div[2]"));
-            prof.SelfSummary = selfSummary.Text;
+            // Press more buttons
+            IWebElement more = main.FindElementByPartialClass("-expand");
+            if(more != null && more.Displayed)
+            {
+                more.Click();
+            }
+
+            for(int i = 1; i < profileEssayCount; i++)
+            {
+                string header = main.FindElement(By.XPath("div[" + i + "]/div[1]")).Text;
+                string essay = main.FindElement(By.XPath("div[" + i + "]/div[2]")).Text;
+
+                switch (header)
+                {
+                    case "My self-summary":
+                        prof.Essays.SelfSummary = essay; 
+                        break;
+                    case "What I’m doing with my life":
+                        prof.Essays.DoingWithMyLife = essay;
+                        break;
+                    case "I’m really good at":
+                        prof.Essays.ReallyGoodAt = essay;
+                        break;
+                    case "The first things people usually notice about me":
+                        prof.Essays.FirstNoticeAboutMe = essay;
+                        break;
+                    case "Favorite books, movies, shows, music, and food":
+                        prof.Essays.FavoriteItems = essay;
+                        break;
+                    case "The six things I could never do without":
+                        prof.Essays.NeverDoWithout = essay;
+                        break;
+                    case "I spend a lot of time thinking about":
+                        prof.Essays.ThinkingAbout = essay;
+                        break;
+                    case "On a typical Friday night I am":
+                        prof.Essays.TypicalFridayNight = essay;
+                        break;
+                    case "The most private thing I’m willing to admit":
+                        prof.Essays.MostPrivateThing = essay;
+                        break;
+                    case "You should message me if":
+                        prof.Essays.MessageMeIf = essay;
+                        break;
+                    default:
+                        break;
+                }
+
+            }
             #endregion
 
             this.Services.WebService.WaitForPageReady();
@@ -105,6 +153,7 @@ namespace OkCupidBot.Services
             #region Age / Match / IsOnline
             IWebElement amo = this.Services.WebService.Browser.FindElementByPartialClass("basics-asl");
             prof.Age = amo.FindElementByPartialClass("asl-age").Text.TryParseToInt();
+            prof.Location = amo.FindElementByPartialClass("asl-location").Text;
             prof.MatchPercent = Regex.Match(amo.FindElementByPartialClass("asl-match").FindElement(By.TagName("a")).Text, @"\d+").Value.TryParseToInt();
             prof.IsOnline = amo.ElementExists(By.XPath("//*[@data-tooltip='Online now']"));
             #endregion

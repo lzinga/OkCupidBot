@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using ForecastIO;
+using System.Device.Location;
 
 namespace OkCupidBot
 {
@@ -19,6 +20,14 @@ namespace OkCupidBot
             ServiceManager.Services.Add(new DatabaseService());
             ServiceManager.Services.Add(new WebService());
             ServiceManager.Services.Add(new MessageService());
+            ServiceManager.Services.Add(new DiscordService());
+
+            //ServiceManager.Services.WebService.Initialize();
+            //ServiceManager.Services.Add(new OkCupidService());
+            //ServiceManager.Services.OkCupidService.Login();
+            //Profile prof = ServiceManager.Services.OkCupidService.GetProfile("colleen_elizabet", new Uri("https://www.okcupid.com/profile/colleen_elizabet"));
+            //string msesage = ServiceManager.Services.MessageService.GetMessage(prof);
+
 
             Setup setup = new Setup();
             int exitCode = setup.Execute();

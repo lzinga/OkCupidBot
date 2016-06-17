@@ -31,8 +31,6 @@ namespace OkCupidBot.Models
         }
     }
 
-
-
     public class Requirement
     {
         [XmlAttribute]

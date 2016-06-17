@@ -15,13 +15,19 @@ namespace OkCupidBot.Services
             Console.Write("{0}: ", DateTime.Now.ToString());
         }
 
+        public void ClearCurrentConsoleLine()
+        {
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+            Console.Write(new String(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+        }
+
         public void WriteLine(string str, params object[] args)
         {
             WriteDate();
             Console.Write(str, args);
             Console.Write(Environment.NewLine);
         }
-
 
         public void WriteHeader(string str, params object[] args)
         {

@@ -40,6 +40,14 @@ namespace OkCupidBot.Services
             }
         }
 
+        public DiscordService DiscordService
+        {
+            get
+            {
+                return this.GetService<DiscordService>();
+            }
+        }
+
         public MessageService MessageService
         {
             get
@@ -94,6 +102,7 @@ namespace OkCupidBot.Services
 
         public void Add(BaseService service)
         {
+            Console.WriteLine("Starting \"{0}\".", service.ToString());
             _services.Add(service);
         }
 

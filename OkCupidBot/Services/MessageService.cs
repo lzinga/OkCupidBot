@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Weighted_Randomizer;
 
 namespace OkCupidBot.Services
 {
@@ -19,6 +20,8 @@ namespace OkCupidBot.Services
         Random rand = new Random();
 
         private Profile Profile { get; set; }
+        private DateTime DateTime { get; set; }
+
 
         public MessageService()
         {
@@ -59,6 +62,7 @@ namespace OkCupidBot.Services
 
         private object GetPropertyValue(string key, object obj)
         {
+            #region Properties
             PropertyInfo prop = obj.GetType().GetProperty(key, BindingFlags.NonPublic | BindingFlags.Instance);
 
             if(prop == null)
@@ -66,10 +70,23 @@ namespace OkCupidBot.Services
                 prop = obj.GetType().GetProperty(key);
             }
 
-            if (prop == null)
-                throw new InvalidDataException(string.Format("No property named \"{0}\".", key));
+            // If we successfully have a property return the value.
+            if(prop != null)
+            {
+                return prop.GetValue(obj);
+            }
+            #endregion
 
-            return prop.GetValue(obj);
+            #region Field
+            FieldInfo field = obj.GetType().GetField(key);
+
+            if (field != null)
+            {
+                return field.GetValue(obj);
+            }
+            #endregion
+
+            throw new InvalidDataException(string.Format("No property named \"{0}\".", key));
         }
 
         private bool ConditionsMet(MessageGroup group)
@@ -86,19 +103,19 @@ namespace OkCupidBot.Services
                             return false;
                         break;
                     case Operator.GreaterThan:
-                        if ((int)propValue < condition.Value.TryParseToInt())
+                        if (propValue.ToString().TryParseToInt() < condition.Value.TryParseToInt())
                             return false;
                         break;
                     case Operator.GreaterThanOrEqualTo:
-                        if ((int)propValue < condition.Value.TryParseToInt())
+                        if (propValue.ToString().TryParseToInt() < condition.Value.TryParseToInt())
                             return false;
                         break;
                     case Operator.LessThan:
-                        if ((int)propValue > condition.Value.TryParseToInt())
+                        if (propValue.ToString().TryParseToInt() > condition.Value.TryParseToInt())
                             return false;
                         break;
                     case Operator.LessThanOrEqualTo:
-                        if ((int)propValue > condition.Value.TryParseToInt())
+                        if (propValue.ToString().TryParseToInt() > condition.Value.TryParseToInt())
                             return false;
                         break;
                     case Operator.Contains:
@@ -120,14 +137,27 @@ namespace OkCupidBot.Services
         public string GetMessage(Profile prof)
         {
             this.Profile = prof;
-            List<string> allAvailableMessages = new List<string>();
-            foreach(MessageGroup group in settings.Groups)
+            DynamicWeightedRandomizer<string> allAvailableMessages = new DynamicWeightedRandomizer<string>();
+            foreach (MessageGroup group in settings.Groups)
             {
                 // If the conditions aren't met go to the next group.
                 if (!this.ConditionsMet(group))
                     continue;
 
-                allAvailableMessages.AddRange(group.Messages.Select(i => i.Value));
+                foreach(Message messageObj in group.Messages)
+                {
+                    allAvailableMessages.Add(messageObj.Value, group.Conditions.Count);
+                }
+                
+            }
+
+            // If weight is 0 set weight to 1.
+            if(allAvailableMessages.TotalWeight == 0)
+            {
+                foreach(string item in allAvailableMessages)
+                {
+                    allAvailableMessages.SetWeight(item, 1);
+                }
             }
 
             if(allAvailableMessages.Count <= 0)
@@ -135,14 +165,13 @@ namespace OkCupidBot.Services
                 return string.Empty;
             }
 
-            string message = GetParsedMessage(allAvailableMessages.ToList());
+            string message = GetParsedMessage(allAvailableMessages);
             return message;
         }
 
-        private string GetParsedMessage(List<string> messages)
+        private string GetParsedMessage(DynamicWeightedRandomizer<string> messages)
         {
-            List<string> innerMessages = messages;
-            string message = messages[rand.Next(0, messages.Count - 1)];
+            string message = messages.NextWithReplacement();
 
             MatchCollection nspace = new Regex(@"{(\w+(?:\.\w+)*)\.{0,1}}").Matches(message);
 
@@ -151,7 +180,7 @@ namespace OkCupidBot.Services
                 if (match.Success)
                 {
                     string value = GetNameSpaceValue(match.Groups[1].Value);
-                    message = Regex.Replace(message, @"{(\w+(?:\.\w+)*)\.{0,1}}", value);
+                    message = message.Replace(match.Captures[0].Value, value);
                 }
             }
 

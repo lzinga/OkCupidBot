@@ -8,9 +8,24 @@ using OkCupidBot.Models;
 using System.Reflection;
 using System.Collections;
 using OpenQA.Selenium;
+using static OkCupidBot.Services.DiscordService;
 
 namespace OkCupidBot.Common
 {
+    public class Essays
+    {
+        public string SelfSummary { get; set; }
+        public string DoingWithMyLife { get; set; }
+        public string ReallyGoodAt { get; set; }
+        public string FirstNoticeAboutMe { get; set; }
+        public string FavoriteItems { get; set; }
+        public string NeverDoWithout { get; set; }
+        public string ThinkingAbout { get; set; }
+        public string TypicalFridayNight { get; set; }
+        public string MostPrivateThing { get; set; }
+        public string MessageMeIf { get; set; }
+    }
+
     public class Profile
     {
         public string Username { get; set; }
@@ -29,10 +44,12 @@ namespace OkCupidBot.Common
         public Sex Sex { get; set; }
         public bool IsOnline { get; set; }
 
-        public string SelfSummary { get; set; }
+        public Essays Essays { get; set; }
+
 
         public Profile()
         {
+            Essays = new Essays();
             Orientation = new List<Orientation>();
             Ethnicity = new List<Ethnicity>();
         }
@@ -41,7 +58,8 @@ namespace OkCupidBot.Common
         {
             this.Username = username;
             this.ProfilePage = profile;
-            
+            Essays = new Essays();
+
             Orientation = new List<Orientation>();
             Ethnicity = new List<Ethnicity>();
         }
@@ -168,8 +186,6 @@ namespace OkCupidBot.Common
 
         public void SendMessage()
         {
-            ServiceManager.Services.LogService.WriteSubHeader("Sending Message to \"{0}\".", this.Username);
-
             // If already sent message do not send another.
             if (this.HasSentMessage())
             {
@@ -177,32 +193,66 @@ namespace OkCupidBot.Common
                 return;
             }
 
+            ServiceManager.Services.LogService.WriteSubHeader("Sending Message to \"{0}\".", this.Username);
+
             // Should we send a message to the user?
-            if (!this.ShouldSendMessage())
+            //if (!this.ShouldSendMessage())
+            //{
+            //    ServiceManager.Services.LogService.WriteLine("Invalid Requirements...", ConsoleColor.DarkRed);
+            //    ServiceManager.Services.DatabaseService.AddUser(this, null);
+
+            //    return;
+            //}
+            //else
+            //{
+            //    ServiceManager.Services.LogService.WriteLine("Valid Requirements", ConsoleColor.DarkGreen);
+            //}
+
+            if (ServiceManager.Services.ArgumentService.Arguments.DiscordMessage)
             {
-                ServiceManager.Services.LogService.WriteLine("Invalid Requirements...", ConsoleColor.DarkRed);
-                ServiceManager.Services.DatabaseService.AddUser(this, null);
-                return;
+                ServiceManager.Services.DiscordService.SendMessage($"Requesting message for {this.Username}");
+                ServiceManager.Services.DiscordService.SendMessage($"Here is here information:");
+                ServiceManager.Services.DiscordService.SendMessage($"Age: {this.Age}");
+                ServiceManager.Services.DiscordService.SendMessage($"Body Type: {this.BodyType}");
+                ServiceManager.Services.DiscordService.SendMessage($"{this.Height.Feet} Feet {this.Height.Inches} Inches");
+                ServiceManager.Services.DiscordService.SendMessage($"Relationship Status: {this.RelationshipStatus}");
+                ServiceManager.Services.DiscordService.SendMessage($"Orientation:  {{{string.Join(",", this.Orientation)}}}");
+
+                ServiceManager.Services.DiscordService.GetUserMessages();
+                ServiceManager.Services.DiscordService.SendMessage("Waiting for 30 seconds, compose your messages!");
+                ServiceManager.Services.WebService.WaitForTime(30);
+                ServiceManager.Services.DiscordService.ReceiveMessages = false;
+
+                List<UserMessage> messages = ServiceManager.Services.DiscordService.UserMessages;
+                ServiceManager.Services.DiscordService.SendMessage($"{messages.Count} messages were give. Choosing a random one.");
+
+                Random rand = new Random();
+                UserMessage selectedMessage = messages[rand.Next(0, messages.Count - 1)];
+                ServiceManager.Services.DiscordService.SendMessage($"{selectedMessage.User} has been chosen with the message of: \"{selectedMessage.Message}\"");
+
+                if (string.IsNullOrEmpty(selectedMessage.Message))
+                {
+                    ServiceManager.Services.LogService.WriteLine("The returned message was empty, something bad happened.", ConsoleColor.Yellow);
+                    return;
+                }
+
+                ServiceManager.Services.DiscordService.SendMessage($"Sending message: {selectedMessage.Message}");
+                ServiceManager.Services.DatabaseService.AddUser(this, selectedMessage.Message);
             }
             else
             {
-                ServiceManager.Services.LogService.WriteLine("Valid Requirements", ConsoleColor.DarkGreen);
+                string message = ServiceManager.Services.MessageService.GetMessage(this);
+
+                if (string.IsNullOrEmpty(message))
+                {
+                    ServiceManager.Services.LogService.WriteLine("The returned message was empty, something bad happened.", ConsoleColor.Yellow);
+                    return;
+                }
+
+                
+                ServiceManager.Services.OkCupidService.SendMessage(message);
+                ServiceManager.Services.DatabaseService.AddUser(this, message);
             }
-
-            string message = ServiceManager.Services.MessageService.GetMessage(this);
-
-            if (string.IsNullOrEmpty(message))
-            {
-                ServiceManager.Services.LogService.WriteLine("The returned message was empty, something bad happened.", ConsoleColor.Yellow);
-                return;
-            }
-
-            ServiceManager.Services.LogService.WriteLine("Sending Message: {0}", ConsoleColor.White, message);
-            ServiceManager.Services.OkCupidService.SendMessage(message);
-
-            ServiceManager.Services.DatabaseService.AddUser(this, message);
         }
-
-
     }
 }
