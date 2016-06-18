@@ -180,6 +180,11 @@ namespace OkCupidBot.Services
             }
             #endregion
 
+            #region Picture
+            string profilePic = this.Services.WebService.Browser.FindElement(By.XPath("//img[@class='active']")).GetAttribute("src");
+            prof.ProfileImageUrl = profilePic;
+            #endregion
+
             // Turn the details list into their respective enums.
             this.ParseDetails(ref prof, details);
 

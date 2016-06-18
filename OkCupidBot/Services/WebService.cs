@@ -95,10 +95,11 @@ namespace OkCupidBot.Services
             }
         }
 
-        public void ScrollTo(By by)
+        public void ScrollTo(By by, int timeout = 60)
         {
             ServiceManager.Services.LogService.WriteLine("Scrolling to \"{0}\".", by.ToString());
             bool foundItem = false;
+            DateTime endTime = DateTime.Now.AddSeconds(timeout);
 
             while (!foundItem)
             {
@@ -108,6 +109,12 @@ namespace OkCupidBot.Services
                 if (_driver.FindElements(by).Count > 0)
                 {
                     foundItem = true;
+                    break;
+                }
+
+                if(DateTime.Now >= endTime)
+                {
+                    ServiceManager.Services.LogService.WriteLine("Scroll timed out.", by.ToString());
                     break;
                 }
             }

@@ -43,6 +43,7 @@ namespace OkCupidBot.Common
         public Drugs Drugs { get; set; }
         public Sex Sex { get; set; }
         public bool IsOnline { get; set; }
+        public string ProfileImageUrl { get; set; }
 
         public Essays Essays { get; set; }
 
@@ -193,42 +194,64 @@ namespace OkCupidBot.Common
                 return;
             }
 
-            ServiceManager.Services.LogService.WriteSubHeader("Sending Message to \"{0}\".", this.Username);
-
-            // Should we send a message to the user?
-            //if (!this.ShouldSendMessage())
-            //{
-            //    ServiceManager.Services.LogService.WriteLine("Invalid Requirements...", ConsoleColor.DarkRed);
-            //    ServiceManager.Services.DatabaseService.AddUser(this, null);
-
-            //    return;
-            //}
-            //else
-            //{
-            //    ServiceManager.Services.LogService.WriteLine("Valid Requirements", ConsoleColor.DarkGreen);
-            //}
-
+            // If discord get messages from users.
             if (ServiceManager.Services.ArgumentService.Arguments.DiscordMessage)
             {
-                ServiceManager.Services.DiscordService.SendMessage($"Requesting message for {this.Username}");
+                ServiceManager.Services.LogService.WriteLine("Waiting for Discord...", ConsoleColor.Yellow);
+                ServiceManager.Services.DiscordService.SendMessage($"=================================");
+                ServiceManager.Services.DiscordService.SendMessage($"{this.Username}");
+                ServiceManager.Services.DiscordService.SendMessage($"=================================");
                 ServiceManager.Services.DiscordService.SendMessage($"Here is here information:");
                 ServiceManager.Services.DiscordService.SendMessage($"Age: {this.Age}");
                 ServiceManager.Services.DiscordService.SendMessage($"Body Type: {this.BodyType}");
                 ServiceManager.Services.DiscordService.SendMessage($"{this.Height.Feet} Feet {this.Height.Inches} Inches");
                 ServiceManager.Services.DiscordService.SendMessage($"Relationship Status: {this.RelationshipStatus}");
                 ServiceManager.Services.DiscordService.SendMessage($"Orientation:  {{{string.Join(",", this.Orientation)}}}");
+                ServiceManager.Services.DiscordService.SendMessage($"Profile Picture: {this.ProfileImageUrl}");
 
+                List<UserMessage> messages = new List<UserMessage>();
+                int waitTime = 40;
+                
                 ServiceManager.Services.DiscordService.GetUserMessages();
-                ServiceManager.Services.DiscordService.SendMessage("Waiting for 30 seconds, compose your messages!");
-                ServiceManager.Services.WebService.WaitForTime(30);
-                ServiceManager.Services.DiscordService.ReceiveMessages = false;
+                ServiceManager.Services.LogService.WriteLine("Trying to get messages from discord...");
+                ServiceManager.Services.DiscordService.SendMessage($"Waiting for {waitTime} seconds, compose your messages by using /okcm!");
+                ServiceManager.Services.WebService.WaitForTime(waitTime);
+                messages = ServiceManager.Services.DiscordService.UserMessages;
+                
 
-                List<UserMessage> messages = ServiceManager.Services.DiscordService.UserMessages;
-                ServiceManager.Services.DiscordService.SendMessage($"{messages.Count} messages were give. Choosing a random one.");
+                bool infi = true;
+                if (messages.Count <= 0)
+                {
+                    ServiceManager.Services.DiscordService.SendMessage($"No messages given, waiting for atleast 1 message.");
+
+                    // Keep going until it gets a message.
+                    while (ServiceManager.Services.DiscordService.UserMessages.Count <= 0 && infi)
+                    {
+                        if (ServiceManager.Services.DiscordService.UserMessages.Count > 0)
+                        {
+                            ServiceManager.Services.DiscordService.SendMessage($"Atleast 1 message has been given, waiting for {waitTime} seconds to continue.");
+                            ServiceManager.Services.DiscordService.SendMessage($"Waiting for {waitTime} more seconds, compose your messages by using /okcm!");
+                            ServiceManager.Services.WebService.WaitForTime(waitTime);
+                            messages = ServiceManager.Services.DiscordService.UserMessages;
+
+                            infi = false;
+                            break;
+                        }
+                    }
+                }
+
+                ServiceManager.Services.DiscordService.ReceiveMessages = false;
+                ServiceManager.Services.DiscordService.SendMessage($"{messages.Count} Messages Found:");
+
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    UserMessage curMessage = messages[i];
+                    ServiceManager.Services.DiscordService.SendMessage($"{i + 1}. {curMessage.Mention}: {curMessage.Message}");
+                }
 
                 Random rand = new Random();
                 UserMessage selectedMessage = messages[rand.Next(0, messages.Count - 1)];
-                ServiceManager.Services.DiscordService.SendMessage($"{selectedMessage.User} has been chosen with the message of: \"{selectedMessage.Message}\"");
+                ServiceManager.Services.DiscordService.SendMessage($"Congratulations {selectedMessage.Mention} your message has been chosen - \"{selectedMessage.Message}\"");
 
                 if (string.IsNullOrEmpty(selectedMessage.Message))
                 {
@@ -236,11 +259,26 @@ namespace OkCupidBot.Common
                     return;
                 }
 
-                ServiceManager.Services.DiscordService.SendMessage($"Sending message: {selectedMessage.Message}");
-                ServiceManager.Services.DatabaseService.AddUser(this, selectedMessage.Message);
+                ServiceManager.Services.LogService.WriteLine("Message: \"{0}\".", selectedMessage.Message);
+                ServiceManager.Services.DiscordService.SendMessage("Message has been sent. Continuing to next profile.");
+                //ServiceManager.Services.OkCupidService.SendMessage(selectedMessage.Message);
+                //ServiceManager.Services.DatabaseService.AddUser(this, selectedMessage.Message);
             }
             else
             {
+                // Should we send a message to the user?
+                if (!this.ShouldSendMessage())
+                {
+                    ServiceManager.Services.LogService.WriteLine("Invalid Requirements...", ConsoleColor.DarkRed);
+                    ServiceManager.Services.DatabaseService.AddUser(this, null);
+                    return;
+                }
+                else
+                {
+                    ServiceManager.Services.LogService.WriteLine("Valid Requirements", ConsoleColor.DarkGreen);
+                }
+
+
                 string message = ServiceManager.Services.MessageService.GetMessage(this);
 
                 if (string.IsNullOrEmpty(message))
@@ -249,10 +287,13 @@ namespace OkCupidBot.Common
                     return;
                 }
 
-                
+                ServiceManager.Services.LogService.WriteLine("Message: \"{0}\".", message);
                 ServiceManager.Services.OkCupidService.SendMessage(message);
                 ServiceManager.Services.DatabaseService.AddUser(this, message);
             }
+
+            
+            ServiceManager.Services.LogService.WriteSubHeader("Sent Message to \"{0}\".", this.Username);
         }
     }
 }

@@ -28,7 +28,6 @@ namespace OkCupidBot
             //Profile prof = ServiceManager.Services.OkCupidService.GetProfile("colleen_elizabet", new Uri("https://www.okcupid.com/profile/colleen_elizabet"));
             //string msesage = ServiceManager.Services.MessageService.GetMessage(prof);
 
-
             Setup setup = new Setup();
             int exitCode = setup.Execute();
             ServiceManager.Services.LogService.WriteHeader("OkCupidBot Completed");

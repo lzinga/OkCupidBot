@@ -102,7 +102,6 @@ namespace OkCupidBot.Services
 
         public void Add(BaseService service)
         {
-            Console.WriteLine("Starting \"{0}\".", service.ToString());
             _services.Add(service);
         }
 
