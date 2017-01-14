@@ -21,7 +21,8 @@ namespace OkCupidBot
             ServiceManager.Services.Add(new WebService());
             ServiceManager.Services.Add(new MessageService());
             ServiceManager.Services.Add(new DiscordService());
-
+            
+            // This is purely for testing purposes to test the messaging system.
             //ServiceManager.Services.WebService.Initialize();
             //ServiceManager.Services.Add(new OkCupidService());
             //ServiceManager.Services.OkCupidService.Login();
