@@ -1,14 +1,7 @@
 # OkCupidBot
-There actually have been 2 other versions of this kind of program, and this is the cleanest and most advanced one which I decided to upload and document.
+I made this as an experiment a while back. It has been through quite a few iterations but this is probably the most solid one. Since things tend to change on OkCupid quite often it is bound to break every now and then.
 
-### First Version
-The first one was made using a different library. It would crash all the time and would fail to load the browser because one already existed and you would have to end process a hidden internet explorer. All in all it wasn't the best library and caused all kinds of issues.
-
-### Second Version
-Second one was using the same library as this but it was a complete mess of code and didn't have proper encapsulation and had things all in one big method for the most part. So it was just this uploaded version, but a huge mess.
-
-### Third Version ( this repo )
-Now we are on this one that I will probably stick with, the library is solid and allows for a lot of customization and allows me to use any type of browser (however it is hardcoded right now to use firefox).
+1/14/2017 - I haven't updated this in a while so it is bound to be broken at this point. Just did some minor updates since I planned to make the repo public.
 
 # Arguments
 ```csharp
@@ -21,9 +14,25 @@ Now we are on this one that I will probably stick with, the library is solid and
 // Password to be used when logging into okcupid.
 /Password="{password}"
 
-// The settings file to be used.
+// The conditions and requirements for who to send a message to.
 // File must be inside /Config folder
 /ProfileSettingsFileName="DefaultProfileSettings.xml"
+
+// Config file to determine which message should be sent based on special cases.
+// File must be inside /Config folder
+/MessageSettingsFileName="DefaultMessages.xml"
+
+// The discord account to login as. (I believe there are special bot accounts that can be used,
+// so this might not be needed anymore)
+/DiscordUsername=""
+/DiscordPassword=""
+
+// I don't full remember what this one was for.
+// I believe it is what is used to detect what the person wants to send from discord.
+// For example if DiscordMessage was "/okm"
+// anyone in discord would have to write "/okm Hello sexy, what is your favorite thing to do"
+// It would then detect that as a message wanting to be sent to the person.
+/DiscordMessage=""
 ```
 
 # Profile Settings Xml
@@ -87,6 +96,7 @@ For the condition key if you wanted to make sure they were above 5 feet you coul
 # Libraries
 1. [Selenium WebDriver](https://www.nuget.org/packages/Selenium.WebDriver/)
 2. [Selenium WebDriver Support Classes](https://www.nuget.org/packages/Selenium.Support/)
+3. [DiscordSharp](https://github.com/suicvne/DiscordSharp)
 
 # Disclaimer
 1. If you use this there is a chance your account can be banned. Use at your own risk, I have put in safe measures to not send mass messages to quickly in succession. However if you run it non stop I am sure OkCupid would recognize that something is going on.
