@@ -16,8 +16,10 @@ namespace OkCupidBot.Services
 {
     public class DiscordService : BaseService
     {
-        public const long ChannelOne = 193453248336756736;
-        public const long ChannelTwo = 167049576006680576;
+        /// <summary>
+        /// The channel ID to connect to. TODO: Turn this into an argument for the exe.
+        /// </summary>
+        public const long ChannelOne = 000000000000000000;
 
         public struct UserMessage
         {
