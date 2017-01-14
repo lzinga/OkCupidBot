@@ -96,7 +96,7 @@ For the condition key if you wanted to make sure they were above 5 feet you coul
 # Libraries
 1. [Selenium WebDriver](https://www.nuget.org/packages/Selenium.WebDriver/)
 2. [Selenium WebDriver Support Classes](https://www.nuget.org/packages/Selenium.Support/)
-3. [DiscordSharp](https://github.com/suicvne/DiscordSharp)
+3. [Discord.Net](https://github.com/RogueException/Discord.Net)
 
 # Disclaimer
 1. If you use this there is a chance your account can be banned. Use at your own risk, I have put in safe measures to not send mass messages to quickly in succession. However if you run it non stop I am sure OkCupid would recognize that something is going on.
